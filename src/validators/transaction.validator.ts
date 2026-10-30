@@ -3,7 +3,7 @@ import { z } from 'zod';
 const amountSchema = z
   .number({ error: 'amount must be a number' })
   .positive('amount must be greater than 0')
-  .refine((v) => Math.round(v * 100) === v * 100, 'amount can have at most 2 decimal places');
+  .refine((v) => Number(v.toFixed(2)) === v, 'amount can have at most 2 decimal places');
 
 export const createTransactionSchema = z
   .object({

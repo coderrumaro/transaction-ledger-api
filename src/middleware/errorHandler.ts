@@ -20,6 +20,12 @@ export function errorHandler(err: any, _req: Request, res: Response, _next: Next
     });
   }
 
+  if (err.code === '22003') {
+    return res.status(400).json({
+      error: { code: 'VALIDATION_ERROR', message: 'Amount is too large' },
+    });
+  }
+
   console.error(err);
   res.status(500).json({
     error: { code: 'INTERNAL_ERROR', message: 'Something went wrong' },
