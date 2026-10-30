@@ -112,7 +112,7 @@ All errors have the same shape
 
 - Every transaction runs in a DB transaction. The account row is locked (`SELECT ... FOR UPDATE`), the balance is updated and the transaction row is inserted, then committed. If anything fails it is rolled back.
 - `accounts.balance` has a `CHECK (balance >= 0)` and `transactions` has `UNIQUE (account_id, reference_id)` and `CHECK (amount > 0)`.
-- There are no update or delete endpoints for transactions, and a database trigger also rejects `UPDATE`/`DELETE` on the `transactions` table.
+- There are no update or delete endpoints for transactions, and database triggers also reject `UPDATE`, `DELETE` and `TRUNCATE` on the `transactions` table.
 - Transfers lock both accounts (ordered by id to avoid deadlocks) and write the debit and credit in one DB transaction.
 
 ## Assumptions

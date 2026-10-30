@@ -29,3 +29,8 @@ DROP TRIGGER IF EXISTS transactions_immutable ON transactions;
 CREATE TRIGGER transactions_immutable
   BEFORE UPDATE OR DELETE ON transactions
   FOR EACH ROW EXECUTE FUNCTION prevent_transaction_changes();
+
+DROP TRIGGER IF EXISTS transactions_no_truncate ON transactions;
+CREATE TRIGGER transactions_no_truncate
+  BEFORE TRUNCATE ON transactions
+  FOR EACH STATEMENT EXECUTE FUNCTION prevent_transaction_changes();
