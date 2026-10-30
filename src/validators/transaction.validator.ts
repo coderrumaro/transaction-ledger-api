@@ -1,7 +1,5 @@
 import { z } from 'zod';
 
-export const accountIdSchema = z.string().uuid('Invalid account id');
-
 export const createTransactionSchema = z
   .object({
     type: z.enum(['credit', 'debit'], { error: 'type must be either credit or debit' }),
@@ -18,3 +16,20 @@ export const createTransactionSchema = z
   .strict();
 
 export type CreateTransactionInput = z.infer<typeof createTransactionSchema>;
+
+export const listTransactionsSchema = z.object({
+  type: z.enum(['credit', 'debit'], { error: 'type must be either credit or debit' }).optional(),
+  page: z.coerce
+    .number({ error: 'page must be a number' })
+    .int('page must be an integer')
+    .min(1, 'page must be at least 1')
+    .default(1),
+  limit: z.coerce
+    .number({ error: 'limit must be a number' })
+    .int('limit must be an integer')
+    .min(1, 'limit must be at least 1')
+    .max(100, 'limit cannot be more than 100')
+    .default(10),
+});
+
+export type ListTransactionsQuery = z.infer<typeof listTransactionsSchema>;

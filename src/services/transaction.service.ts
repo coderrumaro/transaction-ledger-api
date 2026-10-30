@@ -1,7 +1,7 @@
 import { PoolClient } from 'pg';
 import { pool } from '../db/pool';
 import { accountNotFound, duplicateTransaction, insufficientBalance } from '../errors';
-import { CreateTransactionInput } from '../validators/transaction.validator';
+import { CreateTransactionInput, ListTransactionsQuery } from '../validators/transaction.validator';
 
 export interface Transaction {
   id: string;
@@ -77,4 +77,39 @@ export async function createTransaction(
   } finally {
     client.release();
   }
+}
+
+export async function listTransactions(accountId: string, query: ListTransactionsQuery) {
+  const account = await pool.query('SELECT id FROM accounts WHERE id = $1', [accountId]);
+  if (account.rowCount === 0) {
+    throw accountNotFound(accountId);
+  }
+
+  const params: unknown[] = [accountId];
+  let where = 'account_id = $1';
+  if (query.type) {
+    params.push(query.type);
+    where += ` AND type = $${params.length}`;
+  }
+
+  const count = await pool.query(`SELECT count(*) FROM transactions WHERE ${where}`, params);
+  const total = Number(count.rows[0].count);
+
+  const offset = (query.page - 1) * query.limit;
+  const { rows } = await pool.query(
+    `SELECT * FROM transactions WHERE ${where}
+     ORDER BY created_at DESC, id DESC
+     LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+    [...params, query.limit, offset]
+  );
+
+  return {
+    data: rows.map(toTransaction),
+    pagination: {
+      page: query.page,
+      limit: query.limit,
+      total,
+      total_pages: Math.ceil(total / query.limit),
+    },
+  };
 }

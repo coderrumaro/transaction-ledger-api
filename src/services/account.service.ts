@@ -1,4 +1,5 @@
 import { pool } from '../db/pool';
+import { accountNotFound } from '../errors';
 
 export interface Account {
   id: string;
@@ -20,4 +21,12 @@ export async function createAccount(name: string): Promise<Account> {
     [name]
   );
   return toAccount(rows[0]);
+}
+
+export async function getBalance(id: string) {
+  const { rows } = await pool.query('SELECT id, balance FROM accounts WHERE id = $1', [id]);
+  if (rows.length === 0) {
+    throw accountNotFound(id);
+  }
+  return { account_id: rows[0].id, balance: Number(rows[0].balance) };
 }
