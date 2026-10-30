@@ -4,6 +4,7 @@ import { accountIdSchema } from '../validators/account.validator';
 import {
   createTransactionSchema,
   listTransactionsSchema,
+  transferSchema,
 } from '../validators/transaction.validator';
 import { parse } from '../validators/validate';
 
@@ -24,6 +25,16 @@ export async function listTransactions(req: Request, res: Response, next: NextFu
     const query = parse(listTransactionsSchema, req.query);
     const result = await transactionService.listTransactions(accountId, query);
     res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function transfer(req: Request, res: Response, next: NextFunction) {
+  try {
+    const input = parse(transferSchema, req.body);
+    const result = await transactionService.transfer(input);
+    res.status(201).json(result);
   } catch (err) {
     next(err);
   }

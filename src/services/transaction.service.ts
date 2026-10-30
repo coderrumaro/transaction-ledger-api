@@ -1,7 +1,7 @@
 import { PoolClient } from 'pg';
 import { pool } from '../db/pool';
 import { accountNotFound, duplicateTransaction, insufficientBalance } from '../errors';
-import { CreateTransactionInput, ListTransactionsQuery } from '../validators/transaction.validator';
+import { CreateTransactionInput, ListTransactionsQuery, TransferInput } from '../validators/transaction.validator';
 
 export interface Transaction {
   id: string;
@@ -112,4 +112,43 @@ export async function listTransactions(accountId: string, query: ListTransaction
       total_pages: Math.ceil(total / query.limit),
     },
   };
+}
+
+export async function transfer(input: TransferInput) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const ids = [input.from_account_id, input.to_account_id];
+    const locked = await client.query(
+      'SELECT id FROM accounts WHERE id = ANY($1) ORDER BY id FOR UPDATE',
+      [ids]
+    );
+    const found = locked.rows.map((r) => r.id);
+    const missing = ids.find((id) => !found.includes(id));
+    if (missing) {
+      throw accountNotFound(missing);
+    }
+
+    const debit = await applyTransaction(client, input.from_account_id, {
+      type: 'debit',
+      amount: input.amount,
+      description: input.description,
+      reference_id: input.reference_id,
+    });
+    const credit = await applyTransaction(client, input.to_account_id, {
+      type: 'credit',
+      amount: input.amount,
+      description: input.description,
+      reference_id: input.reference_id,
+    });
+
+    await client.query('COMMIT');
+    return { reference_id: input.reference_id, amount: input.amount, debit, credit };
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
 }
