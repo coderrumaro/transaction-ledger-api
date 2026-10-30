@@ -76,6 +76,7 @@ paths:
                 amount:
                   type: number
                   minimum: 0.01
+                  maximum: 999999999999.99
                   example: 50
                 description:
                   type: string
@@ -179,6 +180,7 @@ paths:
                 amount:
                   type: number
                   minimum: 0.01
+                  maximum: 999999999999.99
                   example: 30
                 description:
                   type: string
