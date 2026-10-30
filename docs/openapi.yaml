@@ -8,6 +8,21 @@ servers:
   - url: http://localhost:3000
 
 paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: Service is up
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
   /accounts:
     post:
       summary: Create an account
