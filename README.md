@@ -19,12 +19,23 @@ npm install
 
 2. Create a database and a user (or use your own and change `DATABASE_URL`)
 
+Postgres needs to be running first (on macOS with Homebrew: `brew services start postgresql@16`).
+
+Linux / most installs:
+
 ```bash
 psql -U postgres -c "CREATE USER ledger WITH PASSWORD 'ledger'"
 psql -U postgres -c "CREATE DATABASE ledger OWNER ledger"
 ```
 
-Postgres needs to be running first (on macOS with Homebrew: `brew services start postgresql@16`). Homebrew doesn't create a `postgres` role, the superuser is your macOS user, so run the same commands with `-d postgres` instead of `-U postgres`. On Linux you can use `sudo -u postgres psql -c "..."`.
+macOS with Homebrew (there is no `postgres` role, the superuser is your macOS user):
+
+```bash
+psql -d postgres -c "CREATE USER ledger WITH PASSWORD 'ledger'"
+psql -d postgres -c "CREATE DATABASE ledger OWNER ledger"
+```
+
+On Linux you can also use `sudo -u postgres psql -c "..."`.
 
 3. Create the env file
 
